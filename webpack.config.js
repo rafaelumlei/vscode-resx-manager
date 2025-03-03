@@ -26,34 +26,34 @@ module.exports = [
       ],
     },
   },
-  // {
-  //   mode: "production",
-  //   target: "web",
-  //   entry: "./src/webview/App.tsx",
-  //   output: {
-  //     path: path.resolve(__dirname, "dist"),
-  //     filename: "webview.js",
-  //   },
-  //   resolve: {
-  //     extensions: [".tsx", ".ts", ".js"],
-  //   },
-  //   module: {
-  //     rules: [
-  //       {
-  //         test: /\.[jt]sx?$/,
-  //         exclude: /node_modules/,
-  //         use: {
-  //           loader: "babel-loader",
-  //           options: {
-  //             presets: ["@babel/preset-react", "@babel/preset-env", "@babel/preset-typescript"]
-  //           }
-  //         }
-  //       },
-  //       {
-  //         test: /\.css$/,
-  //         use: ["style-loader", "css-loader"],
-  //       },
-  //     ],
-  //   }
-  // }
+  {
+    mode: "production",
+    target: "web",
+    entry: "./src/webview/App.tsx",
+    output: {
+      path: path.resolve(__dirname, "dist"),
+      filename: "webview.js",
+    },
+    resolve: {
+      extensions: [".tsx", ".ts", ".js"],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.[jt]sx?$/,
+          exclude: /node_modules/,
+          use: {
+            loader: "babel-loader",
+            options: {
+              presets: ["@babel/preset-react", "@babel/preset-env", "@babel/preset-typescript"]
+            }
+          }
+        },
+        {
+          test: /\.css$/,
+          use: ["style-loader", "css-loader"],
+        },
+      ],
+    }
+  }
 ];

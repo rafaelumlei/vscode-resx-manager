@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 
-type Resources = { [lang: string]: string };
+export type Resources = { [lang: string]: string /* xml */ };
 
 export class ResxEditor implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -35,15 +35,18 @@ export class ResxEditor implements vscode.CustomTextEditorProvider {
 
   private async loadResxFiles(document: vscode.TextDocument) {
     const folder = vscode.workspace.getWorkspaceFolder(document.uri);
-    const resourceFile = path.parse(document.fileName).base.replace(/\..*$/, '');
-    const files = await vscode.workspace.findFiles(new vscode.RelativePattern(folder!.uri, `{${resourceFile}.resx,${resourceFile}.*.resx}`));
+    const file = path.parse(document.fileName).base.replace(/\..*$/, '');
+    const files = await vscode.workspace.findFiles(new vscode.RelativePattern(folder!.uri, `{${file}.resx,${file}.*.resx}`));
     const regex = /^(.*)\.(\w+)\.resx$/;
+
     const resources: Resources = {};
-    files.forEach(async (f) => {
-      const filename = path.parse(f.fsPath).base;
-      const match = filename.match(regex);
-      resources[match ? match[2] : 'default'] = (await vscode.workspace.openTextDocument(f)).getText();
-    });
+
+    for (const f of files) {
+      const doc = await vscode.workspace.openTextDocument(f);
+      const match = doc.fileName.match(regex);
+      resources[match ? match[2] : 'Default'] = doc.getText();
+    }
+    
     return resources;
   }
 
@@ -65,7 +68,6 @@ export class ResxEditor implements vscode.CustomTextEditorProvider {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
       </head>
       <body>
-        <h1>Rafael ${scriptUri}</h1>
         <div id="root"></div>
         <script>
           window.initialData = ${JSON.stringify(resources)};

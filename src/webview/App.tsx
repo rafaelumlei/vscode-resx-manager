@@ -1,31 +1,40 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { Resources } from "../RESXEditor";
 
 const vscode = acquireVsCodeApi();
 
 const App = () => {
-  const [data, setData] = useState<Record<string, string>>({}); 
+  const [langs, setLangs] = useState<string[]>([]); 
+  const [data, setData] = useState<Record<string, string[]>>({}); 
   useEffect(() => {
-    parseResx((window as any).initialData);
+    console.log((window as any).initialData);
+    loadResources((window as any).initialData as Resources);
   }, []);
 
-  const parseResx = (xmlString: string) => {
+  const loadResources = (resources: Resources) => {
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-    const items = Array.from(xmlDoc.getElementsByTagName("data"));
-    const parsedData: Record<string, string> = {};
+    const parsedData: Record<string, string[]> = {};
+    const langs = Object.keys(resources)
+      .sort((a, b) => a == 'Default' ? -3 : a.toLowerCase().includes('en') ? -2 : a.localeCompare(b));
 
-    items.forEach((item) => {
-      const key = item.getAttribute("name") || "";
-      const value = item.getElementsByTagName("value")[0]?.textContent || "";
-      parsedData[key] = value;
+    langs.forEach((lang, i) => {
+      const xmlDoc = parser.parseFromString(resources[lang], "text/xml");
+      const items = Array.from(xmlDoc.getElementsByTagName("data"));
+      items.forEach((item) => {
+        const key = item.getAttribute("name") || "";
+        const value = item.getElementsByTagName("value")[0]?.textContent || "";
+        parsedData[key] ??= (parsedData[key] ?? new Array(langs.length).fill(''));
+        parsedData[key][i] = value;
+      });
     });
 
+    setLangs(langs);
     setData(parsedData);
   };
 
   const updateValue = (key: string, value: string) => {
-    setData((prev) => ({ ...prev, [key]: value }));
+    // setData((prev) => ({ ...prev, [key]: value }));
   };
 
   const saveChanges = () => {
@@ -40,25 +49,26 @@ const App = () => {
 
   return (
     <div>
-      <h2>RESX Table Editor</h2>
       <table>
         <thead>
           <tr>
             <th>Key</th>
-            <th>Value</th>
-          </tr>
+            {langs.map((lang) => (<th>{lang}</th>))}
+            </tr>
         </thead>
         <tbody>
-          {Object.entries(data).map(([key, value]) => (
+          {Object.entries(data).map(([key, values]) => (
             <tr key={key}>
               <td>{key}</td>
-              <td>
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => updateValue(key, e.target.value)}
-                />
-              </td>
+              {values.map(v => (
+                <td>
+                  <input
+                    type="text"
+                    value={v}
+                    onChange={(e) => updateValue(key, e.target.value)}
+                  />
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>
